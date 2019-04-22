@@ -12,7 +12,7 @@ This function was originally derived from the
 
 # For this fork:
 
-I have made significant changes to the upstream project. It is now node 8.10, it uses a dedicated logger, many unnecessary pieces were removed, and many typos were fixed. I have also converted this to use Serverless instead.
+Non-trivial changes were made to the upstream project to support upgrading to node 8.10, testing, using a dedicated logger, removing unnecessary pieces, adding a Docker build environment, and converting this to use Serverless instead.
 
 ### 1. Clone this repository
 
@@ -93,17 +93,18 @@ For encrypted hook urls, use KMS_HOOK_URL instead.
 The final step is to deploy the integration to AWS Lambda:
 
 ```bash
-   docker build -t lambda-cloudwatch-slack .
+docker build -t lambda-cloudwatch-slack .
 
-   export AWS_ENV="dev" && \
-   export DEPLOY_BUCKET='billtrust-deploy' && \
-   export HOOK_URL=<HOOK_URL> && \
-   iam-docker-run \
-      --image lambda-cloudwatch-slack \
-      --profile $AWS_ENV \
-      -e DEPLOY_BUCKET=$DEPLOY_BUCKET \
-      -e HOOK_URL=$HOOK_URL \
-      --full-entrypoint "npm deploy"
+export AWS_ENV="dev" && \
+export AWS_REGION="us-east-1" && \
+export DEPLOY_BUCKET="billtrust-deploy-$AWS_ENV-$AWS_REGION" && \
+export HOOK_URL=<HOOK_URL> && \
+iam-docker-run \
+   --image lambda-cloudwatch-slack \
+   --profile $AWS_ENV \
+   -e DEPLOY_BUCKET=$DEPLOY_BUCKET \
+   -e HOOK_URL=$HOOK_URL \
+   --full-entrypoint "npm run deploy"
 ```
 
 For encrypted hook urls, use KMS_HOOK_URL instead.
