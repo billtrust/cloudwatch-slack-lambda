@@ -1,0 +1,30 @@
+service: cloudwatch-to-slack
+
+# pin to a specific Serverless version
+frameworkVersion: ">=1.2.0 <2.0.0"
+
+provider:
+  name: aws
+  region: ${env:AWS_REGION, 'us-east-1'}
+  runtime: nodejs8.10
+  deploymentBucket: ${opt:deployBucket}-${env:AWS_ENV, 'dev'}-${env:AWS_REGION, 'us-east-1'}
+  stage: ${env:AWS_ENV, 'dev'}
+  logRetentionInDays: 14 # cloudwatch logs
+  timeout: 10 # seconds
+  versionFunctions: true
+
+package:
+      exclude:
+        - .git/**
+        - .dockerignore
+        - Dockerfile
+        - images
+
+functions:
+  cloudwatch-to-slack:
+    name: 'cloudwatch-to-slack-${self:provider.stage}'
+    handler: index.handler
+    environment:
+      UNENCRYPTED_HOOK_URL: ${env:HOOK_URL, "none"}
+      KMS_ENCRYPTED_HOOK_URL: ${env:KMS_HOOK_URL, "none"}
+      LOG_LEVEL: 'debug'

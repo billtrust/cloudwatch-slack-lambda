@@ -1,13 +1,54 @@
-NODE_LAMBDA=./node_modules/node-lambda/bin/node-lambda
+sls invoke local -p test/sns-autoscaling-event.json\
+    -f cloudwatch-to-slack \
+    -e AWS_ENV=dev -e AWS_REGION=us-east-1 \
+    --deployBucket not-a-real-bucket
 
-$NODE_LAMBDA run -x test/context.json -j test/sns-codepipeline-event-pipeline-started.json
-$NODE_LAMBDA run -x test/context.json -j test/sns-codepipeline-event-stage-started.json
-$NODE_LAMBDA run -x test/context.json -j test/sns-codepipeline-event-stage-succeeded.json
-$NODE_LAMBDA run -x test/context.json -j test/sns-codepipeline-event-stage-failed.json
-$NODE_LAMBDA run -x test/context.json -j test/sns-cloudwatch-event.json
-$NODE_LAMBDA run -x test/context.json -j test/sns-event.json
-$NODE_LAMBDA run -x test/context.json -j test/sns-elastic-beanstalk-event.json
-$NODE_LAMBDA run -x test/context.json -j test/sns-codedeploy-event.json
-$NODE_LAMBDA run -x test/context.json -j test/sns-codedeploy-configuration.json
-$NODE_LAMBDA run -x test/context.json -j test/sns-elasticache-event.json
-$NODE_LAMBDA run -x test/context.json -j test/sns-autoscaling-event.json
+sls invoke local -p test/sns-cloudwatch-event.json \
+    -f cloudwatch-to-slack \
+    -e AWS_ENV=dev -e AWS_REGION=us-east-1 \
+    --deployBucket not-a-real-bucket
+
+sls invoke local -p test/sns-codedeploy-configuration.json \
+    -f cloudwatch-to-slack \
+    -e AWS_ENV=dev -e AWS_REGION=us-east-1 \
+    --deployBucket not-a-real-bucket
+
+sls invoke local -p test/sns-codedeploy-event.json \
+    -f cloudwatch-to-slack \
+    -e AWS_ENV=dev -e AWS_REGION=us-east-1 \
+    --deployBucket not-a-real-bucket
+
+sls invoke local -p test/sns-codepipeline-event-pipeline-started.json \
+    -f cloudwatch-to-slack \
+    -e AWS_ENV=dev -e AWS_REGION=us-east-1 \
+    --deployBucket not-a-real-bucket
+
+sls invoke local -p test/sns-codepipeline-event-stage-failed.json \
+    -f cloudwatch-to-slack \
+    -e AWS_ENV=dev -e AWS_REGION=us-east-1 \
+    --deployBucket not-a-real-bucket
+
+sls invoke local -p test/sns-codepipeline-event-stage-started.json \
+    -f cloudwatch-to-slack \
+    -e AWS_ENV=dev -e AWS_REGION=us-east-1 \
+    --deployBucket not-a-real-bucket
+
+sls invoke local -p test/sns-codepipeline-event-stage-succeeded.json \
+    -f cloudwatch-to-slack \
+    -e AWS_ENV=dev -e AWS_REGION=us-east-1 \
+    --deployBucket not-a-real-bucket
+
+sls invoke local -p test/sns-elastic-beanstalk-event.json \
+    -f cloudwatch-to-slack \
+    -e AWS_ENV=dev -e AWS_REGION=us-east-1 \
+    --deployBucket not-a-real-bucket
+
+sls invoke local -p test/sns-elasticache-event.json \
+    -f cloudwatch-to-slack \
+    -e AWS_ENV=dev -e AWS_REGION=us-east-1 \
+    --deployBucket not-a-real-bucket
+
+sls invoke local -p test/sns-event.json \
+    -f cloudwatch-to-slack \
+    -e AWS_ENV=dev -e AWS_REGION=us-east-1 \
+    --deployBucket not-a-real-bucket

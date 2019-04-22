@@ -1,49 +1,20 @@
+PARENT PROJECT INFORMATION:
+
 # lambda-cloudwatch-slack
 
 An [AWS Lambda](http://aws.amazon.com/lambda/) function for better Slack notifications. 
 [Check out the blog post](https://assertible.com/blog/npm-package-lambda-cloudwatch-slack).
 
-[![BuildStatus](https://travis-ci.org/assertible/lambda-cloudwatch-slack.png?branch=master)](https://travis-ci.org/assertible/lambda-cloudwatch-slack)
-[![NPM version](https://badge.fury.io/js/lambda-cloudwatch-slack.png)](http://badge.fury.io/js/lambda-cloudwatch-slack)
-
-
 ## Overview
 
 This function was originally derived from the
-[AWS blueprint named `cloudwatch-alarm-to-slack`](https://aws.amazon.com/blogs/aws/new-slack-integration-blueprints-for-aws-lambda/). The
-function in this repo improves on the default blueprint in several
-ways:
+[AWS blueprint named `cloudwatch-alarm-to-slack`](https://aws.amazon.com/blogs/aws/new-slack-integration-blueprints-for-aws-lambda/).
 
-**Better default formatting for CloudWatch notifications:**
+# For this fork:
 
-![AWS Cloud Notification for Slack](https://github.com/assertible/lambda-cloudwatch-slack/raw/master/images/cloudwatch.png)
-
-**Support for notifications from Elastic Beanstalk:**
-
-![Elastic Beanstalk Slack Notifications](https://github.com/assertible/lambda-cloudwatch-slack/raw/master/images/elastic-beanstalk.png)
-
-**Support for notifications from Code Deploy:**
-
-![AWS CodeDeploy Notifications](https://github.com/assertible/lambda-cloudwatch-slack/raw/master/images/code-deploy.png)
-
-**Basic support for notifications from ElastiCache:**
-
-![AWS ElastiCache Notifications](https://github.com/assertible/lambda-cloudwatch-slack/raw/master/images/elasticache.png)
-
-**Support for encrypted and unencrypted Slack webhook url:**
-
-
-## Configuration
+I have made significant changes to the upstream project. It is now node 8.10, it uses a dedicated logger, many unnecessary pieces were removed, and many typos were fixed. I have also converted this to use Serverless instead.
 
 ### 1. Clone this repository
-
-### 2. Configure environment variables
-
-```
-cp .env.example .env
-```
-
-Fill in the variables in the `.env`. 
 
 ### 3. Setup Slack hook
 
@@ -104,22 +75,38 @@ encrypt your Slack hook URL for use in this function:
 }
 ```
 
+## Tests
+
+With the variables filled in, you can test the function:
+
+```bash
+   docker build -t lambda-cloudwatch-slack .
+
+   export HOOK_URL=<HOOK_URL> && \
+   docker run --rm -e HOOK_URL=$HOOK_URL lambda-cloudwatch-slack
+```
+
+For encrypted hook urls, use KMS_HOOK_URL instead.
 
 ### 4. Deploy to AWS Lambda
 
 The final step is to deploy the integration to AWS Lambda:
 
-    npm install
-    npm run deploy
+```bash
+   docker build -t lambda-cloudwatch-slack .
 
-## Tests
-
-With the variables filled in, you can test the function:
-
+   export AWS_ENV="dev" && \
+   export DEPLOY_BUCKET='billtrust-deploy' && \
+   export HOOK_URL=<HOOK_URL> && \
+   iam-docker-run \
+      --image lambda-cloudwatch-slack \
+      --profile $AWS_ENV \
+      -e DEPLOY_BUCKET=$DEPLOY_BUCKET \
+      -e HOOK_URL=$HOOK_URL \
+      --full-entrypoint "npm deploy"
 ```
-npm install
-npm test
-```
+
+For encrypted hook urls, use KMS_HOOK_URL instead.
 
 ## License
 

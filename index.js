@@ -1,29 +1,31 @@
-var AWS = require('aws-sdk');
-var url = require('url');
-var https = require('https');
-var config = require('./config');
-var _ = require('lodash');
-var hookUrl;
+const AWS = require('aws-sdk'),
+      url = require('url'),
+      https = require('https'),
+      config = require('./config'),
+      _ = require('lodash'),
+      logger = require('./logger');
 
-var baseSlackMessage = {}
+const baseSlackMessage = {}
 
-var postMessage = function(message, callback) {
-  var body = JSON.stringify(message);
-  var options = url.parse(hookUrl);
+let hookUrl;
+
+const postMessage = function(message, callback) {
+  let body = JSON.stringify(message),
+      options = url.parse(hookUrl);
   options.method = 'POST';
   options.headers = {
     'Content-Type': 'application/json',
     'Content-Length': Buffer.byteLength(body),
   };
 
-  var postReq = https.request(options, function(res) {
-    var chunks = [];
+  let postReq = https.request(options, function(res) {
+    let chunks = [];
     res.setEncoding('utf8');
     res.on('data', function(chunk) {
       return chunks.push(chunk);
     });
     res.on('end', function() {
-      var body = chunks.join('');
+      const body = chunks.join('');
       if (callback) {
         callback({
           body: body,
@@ -39,29 +41,29 @@ var postMessage = function(message, callback) {
   postReq.end();
 };
 
-var handleElasticBeanstalk = function(event, context) {
-  var timestamp = (new Date(event.Records[0].Sns.Timestamp)).getTime()/1000;
-  var subject = event.Records[0].Sns.Subject || "AWS Elastic Beanstalk Notification";
-  var message = event.Records[0].Sns.Message;
+const handleElasticBeanstalk = function(event, context) {
+  let timestamp = (new Date(event.Records[0].Sns.Timestamp)).getTime()/1000,
+   subject = event.Records[0].Sns.Subject || "AWS Elastic Beanstalk Notification",
+   message = event.Records[0].Sns.Message,
 
-  var stateRed = message.indexOf(" to RED");
-  var stateSevere = message.indexOf(" to Severe");
-  var butWithErrors = message.indexOf(" but with errors");
-  var noPermission = message.indexOf("You do not have permission");
-  var failedDeploy = message.indexOf("Failed to deploy application");
-  var failedConfig = message.indexOf("Failed to deploy configuration");
-  var failedQuota = message.indexOf("Your quota allows for 0 more running instance");
-  var unsuccessfulCommand = message.indexOf("Unsuccessful command execution");
+   stateRed = message.indexOf(" to RED"),
+   stateSevere = message.indexOf(" to Severe"),
+   butWithErrors = message.indexOf(" but with errors"),
+   noPermission = message.indexOf("You do not have permission"),
+   failedDeploy = message.indexOf("Failed to deploy application"),
+   failedConfig = message.indexOf("Failed to deploy configuration"),
+   failedQuota = message.indexOf("Your quota allows for 0 more running instance"),
+   unsuccessfulCommand = message.indexOf("Unsuccessful command execution"),
 
-  var stateYellow = message.indexOf(" to YELLOW");
-  var stateDegraded = message.indexOf(" to Degraded");
-  var stateInfo = message.indexOf(" to Info");
-  var removedInstance = message.indexOf("Removed instance ");
-  var addingInstance = message.indexOf("Adding instance ");
-  var abortedOperation = message.indexOf(" aborted operation.");
-  var abortedDeployment = message.indexOf("some instances may have deployed the new application version");
+   stateYellow = message.indexOf(" to YELLOW"),
+   stateDegraded = message.indexOf(" to Degraded"),
+   stateInfo = message.indexOf(" to Info"),
+   removedInstance = message.indexOf("Removed instance "),
+   addingInstance = message.indexOf("Adding instance "),
+   abortedOperation = message.indexOf(" aborted operation."),
+   abortedDeployment = message.indexOf("some instances may have deployed the new application version");
 
-  var color = "good";
+  let color = "good";
 
   if (stateRed != -1 || stateSevere != -1 || butWithErrors != -1 || noPermission != -1 || failedDeploy != -1 || failedConfig != -1 || failedQuota != -1 || unsuccessfulCommand != -1) {
     color = "danger";
@@ -70,7 +72,7 @@ var handleElasticBeanstalk = function(event, context) {
     color = "warning";
   }
 
-  var slackMessage = {
+  let slackMessage = {
     text: "*" + subject + "*",
     attachments: [
       {
@@ -87,13 +89,14 @@ var handleElasticBeanstalk = function(event, context) {
   return _.merge(slackMessage, baseSlackMessage);
 };
 
-var handleCodeDeploy = function(event, context) {
-  var subject = "AWS CodeDeploy Notification";
-  var timestamp = (new Date(event.Records[0].Sns.Timestamp)).getTime()/1000;
-  var snsSubject = event.Records[0].Sns.Subject;
-  var message;
-  var fields = [];
-  var color = "warning";
+const handleCodeDeploy = function(event, context) {
+  const subject = "AWS CodeDeploy Notification",
+        timestamp = (new Date(event.Records[0].Sns.Timestamp)).getTime()/1000,
+        snsSubject = event.Records[0].Sns.Subject;
+
+  let message,
+      fields = [],
+      color = "warning";
 
   try {
     message = JSON.parse(event.Records[0].Sns.Message);
@@ -120,7 +123,7 @@ var handleCodeDeploy = function(event, context) {
   }
 
 
-  var slackMessage = {
+  let slackMessage = {
     text: "*" + subject + "*",
     attachments: [
       {
@@ -134,14 +137,14 @@ var handleCodeDeploy = function(event, context) {
   return _.merge(slackMessage, baseSlackMessage);
 };
 
-var handleCodePipeline = function(event, context) {
-  var subject = "AWS CodePipeline Notification";
-  var timestamp = (new Date(event.Records[0].Sns.Timestamp)).getTime()/1000;
-  var snsSubject = event.Records[0].Sns.Subject;
-  var message;
-  var fields = [];
-  var color = "warning";
-  var changeType = "";
+const handleCodePipeline = function(event, context) {
+  const subject = "AWS CodePipeline Notification",
+        timestamp = (new Date(event.Records[0].Sns.Timestamp)).getTime()/1000;
+
+  let message,
+      fields = [],
+      color = "warning",
+      changeType = "";
 
   try {
     message = JSON.parse(event.Records[0].Sns.Message);
@@ -179,7 +182,7 @@ var handleCodePipeline = function(event, context) {
   }
 
 
-  var slackMessage = {
+  let slackMessage = {
     text: "*" + subject + "*",
     attachments: [
       {
@@ -193,20 +196,21 @@ var handleCodePipeline = function(event, context) {
   return _.merge(slackMessage, baseSlackMessage);
 };
 
-var handleElasticache = function(event, context) {
-  var subject = "AWS ElastiCache Notification"
-  var message = JSON.parse(event.Records[0].Sns.Message);
-  var timestamp = (new Date(event.Records[0].Sns.Timestamp)).getTime()/1000;
-  var region = event.Records[0].EventSubscriptionArn.split(":")[3];
-  var eventname, nodename;
-  var color = "good";
+const handleElasticache = function(event, context) {
+  const subject = "AWS ElastiCache Notification",
+        message = JSON.parse(event.Records[0].Sns.Message),
+        timestamp = (new Date(event.Records[0].Sns.Timestamp)).getTime()/1000,
+        region = event.Records[0].EventSubscriptionArn.split(":")[3];
+
+  let eventname, nodename;
+      color = "good";
 
   for(key in message){
     eventname = key;
     nodename = message[key];
     break;
   }
-  var slackMessage = {
+  let slackMessage = {
     text: "*" + subject + "*",
     attachments: [
       {
@@ -227,34 +231,36 @@ var handleElasticache = function(event, context) {
   return _.merge(slackMessage, baseSlackMessage);
 };
 
-var handleCloudWatch = function(event, context) {
-  var timestamp = (new Date(event.Records[0].Sns.Timestamp)).getTime()/1000;
-  var message = JSON.parse(event.Records[0].Sns.Message);
-  var region = event.Records[0].EventSubscriptionArn.split(":")[3];
-  var subject = "AWS CloudWatch Notification";
-  var alarmName = message.AlarmName;
-  var metricName = message.Trigger.MetricName;
-  var oldState = message.OldStateValue;
-  var newState = message.NewStateValue;
-  var alarmDescription = message.AlarmDescription;
-  var alarmReason = message.NewStateReason;
-  var trigger = message.Trigger;
-  var color = "warning";
+const handleCloudWatch = function(event, context) {
+  const timestamp = (new Date(event.Records[0].Sns.Timestamp)).getTime()/1000,
+        message = JSON.parse(event.Records[0].Sns.Message),
+        region = event.Records[0].EventSubscriptionArn.split(":")[3],
+        subject = "AWS CloudWatch Notification",
+        alarmName = message.AlarmName,
+        metricName = message.Trigger.MetricName,
+        oldState = message.OldStateValue,
+        newState = message.NewStateValue,
+        alarmDescription = message.AlarmDescription,
+        alarmReason = message.NewStateReason,
+        trigger = message.Trigger;
 
-  if (message.NewStateValue === "ALARM") {
+  let color = "warning";
+
+  if (newState === "ALARM") {
       color = "danger";
-  } else if (message.NewStateValue === "OK") {
+  } else if (newState === "OK") {
       color = "good";
   }
 
-  var slackMessage = {
+  let slackMessage = {
     text: "*" + subject + "*",
     attachments: [
       {
         "color": color,
         "fields": [
           { "title": "Alarm Name", "value": alarmName, "short": true },
-          { "title": "Alarm Description", "value": alarmReason, "short": false},
+          { "title": "Alarm Description", "value": alarmDescription, "short": true },
+          { "title": "Alarm Reason", "value": alarmReason, "short": false },
           {
             "title": "Trigger",
             "value": trigger.Statistic + " "
@@ -280,19 +286,14 @@ var handleCloudWatch = function(event, context) {
   return _.merge(slackMessage, baseSlackMessage);
 };
 
-var handleAutoScaling = function(event, context) {
-  var subject = "AWS AutoScaling Notification"
-  var message = JSON.parse(event.Records[0].Sns.Message);
-  var timestamp = (new Date(event.Records[0].Sns.Timestamp)).getTime()/1000;
-  var eventname, nodename;
-  var color = "good";
+const handleAutoScaling = function(event, context) {
+  const subject = "AWS AutoScaling Notification",
+        message = JSON.parse(event.Records[0].Sns.Message),
+        timestamp = (new Date(event.Records[0].Sns.Timestamp)).getTime()/1000;
 
-  for(key in message){
-    eventname = key;
-    nodename = message[key];
-    break;
-  }
-  var slackMessage = {
+  let color = "good";
+
+  let slackMessage = {
     text: "*" + subject + "*",
     attachments: [
       {
@@ -311,13 +312,14 @@ var handleAutoScaling = function(event, context) {
   return _.merge(slackMessage, baseSlackMessage);
 };
 
-var handleCatchAll = function(event, context) {
+const handleCatchAll = function(event, context) {
 
-    var record = event.Records[0]
-    var subject = record.Sns.Subject
-    var timestamp = new Date(record.Sns.Timestamp).getTime() / 1000;
-    var message = JSON.parse(record.Sns.Message)
-    var color = "warning";
+    const record = event.Records[0],
+          subject = record.Sns.Subject,
+          timestamp = new Date(record.Sns.Timestamp).getTime() / 1000,
+          message = JSON.parse(record.Sns.Message);
+
+    let color = "warning";
 
     if (message.NewStateValue === "ALARM") {
         color = "danger";
@@ -326,17 +328,17 @@ var handleCatchAll = function(event, context) {
     }
 
     // Add all of the values from the event message to the Slack message description
-    var description = ""
+    let description = ""
     for(key in message) {
 
-        var renderedMessage = typeof message[key] === 'object'
+        let renderedMessage = typeof message[key] === 'object'
                             ? JSON.stringify(message[key])
                             : message[key]
 
         description = description + "\n" + key + ": " + renderedMessage
     }
 
-    var slackMessage = {
+    let slackMessage = {
         text: "*" + subject + "*",
         attachments: [
           {
@@ -353,13 +355,14 @@ var handleCatchAll = function(event, context) {
   return _.merge(slackMessage, baseSlackMessage);
 }
 
-var processEvent = function(event, context) {
-  console.log("sns received:" + JSON.stringify(event, null, 2));
-  var slackMessage = null;
-  var eventSubscriptionArn = event.Records[0].EventSubscriptionArn;
-  var eventSnsSubject = event.Records[0].Sns.Subject || 'no subject';
-  var eventSnsMessageRaw = event.Records[0].Sns.Message;
-  var eventSnsMessage = null;
+const processEvent = function(event, context) {
+  logger.debug("sns received:" + JSON.stringify(event, null, 2));
+  let slackMessage = null,
+      eventSnsMessage = null;
+
+  const eventSubscriptionArn = event.Records[0].EventSubscriptionArn,
+        eventSnsSubject = event.Records[0].Sns.Subject || 'no subject',
+        eventSnsMessageRaw = event.Records[0].Sns.Message;
 
   try {
     eventSnsMessage = JSON.parse(eventSnsMessageRaw);
@@ -368,27 +371,27 @@ var processEvent = function(event, context) {
   }
 
   if(eventSubscriptionArn.indexOf(config.services.codepipeline.match_text) > -1 || eventSnsSubject.indexOf(config.services.codepipeline.match_text) > -1 || eventSnsMessageRaw.indexOf(config.services.codepipeline.match_text) > -1){
-    console.log("processing codepipeline notification");
+    logger.debug("processing codepipeline notification");
     slackMessage = handleCodePipeline(event,context)
   }
   else if(eventSubscriptionArn.indexOf(config.services.elasticbeanstalk.match_text) > -1 || eventSnsSubject.indexOf(config.services.elasticbeanstalk.match_text) > -1 || eventSnsMessageRaw.indexOf(config.services.elasticbeanstalk.match_text) > -1){
-    console.log("processing elasticbeanstalk notification");
+    logger.debug("processing elasticbeanstalk notification");
     slackMessage = handleElasticBeanstalk(event,context)
   }
   else if(eventSnsMessage && 'AlarmName' in eventSnsMessage && 'AlarmDescription' in eventSnsMessage){
-    console.log("processing cloudwatch notification");
+    logger.debug("processing cloudwatch notification");
     slackMessage = handleCloudWatch(event,context);
   }
   else if(eventSubscriptionArn.indexOf(config.services.codedeploy.match_text) > -1 || eventSnsSubject.indexOf(config.services.codedeploy.match_text) > -1 || eventSnsMessageRaw.indexOf(config.services.codedeploy.match_text) > -1){
-    console.log("processing codedeploy notification");
+    logger.debug("processing codedeploy notification");
     slackMessage = handleCodeDeploy(event,context);
   }
   else if(eventSubscriptionArn.indexOf(config.services.elasticache.match_text) > -1 || eventSnsSubject.indexOf(config.services.elasticache.match_text) > -1 || eventSnsMessageRaw.indexOf(config.services.elasticache.match_text) > -1){
-    console.log("processing elasticache notification");
+    logger.debug("processing elasticache notification");
     slackMessage = handleElasticache(event,context);
   }
   else if(eventSubscriptionArn.indexOf(config.services.autoscaling.match_text) > -1 || eventSnsSubject.indexOf(config.services.autoscaling.match_text) > -1 || eventSnsMessageRaw.indexOf(config.services.autoscaling.match_text) > -1){
-    console.log("processing autoscaling notification");
+    logger.debug("processing autoscaling notification");
     slackMessage = handleAutoScaling(event, context);
   }
   else{
@@ -397,10 +400,10 @@ var processEvent = function(event, context) {
 
   postMessage(slackMessage, function(response) {
     if (response.statusCode < 400) {
-      console.info('message posted successfully');
+      logger.info('Message posted successfully');
       context.succeed();
     } else if (response.statusCode < 500) {
-      console.error("error posting message to slack API: " + response.statusCode + " - " + response.statusMessage);
+      logger.error("error posting message to slack API: " + response.statusCode + " - " + response.statusMessage);
       // Don't retry because the error is due to a problem with the request
       context.succeed();
     } else {
@@ -413,17 +416,17 @@ var processEvent = function(event, context) {
 exports.handler = function(event, context) {
   if (hookUrl) {
     processEvent(event, context);
-  } else if (config.unencryptedHookUrl) {
-    hookUrl = config.unencryptedHookUrl;
+  } else if (config.UNENCRYPTED_HOOK_URL && config.UNENCRYPTED_HOOK_URL !== "none") {
+    hookUrl = config.UNENCRYPTED_HOOK_URL;
     processEvent(event, context);
-  } else if (config.kmsEncryptedHookUrl && config.kmsEncryptedHookUrl !== '<kmsEncryptedHookUrl>') {
-    var encryptedBuf = new Buffer(config.kmsEncryptedHookUrl, 'base64');
-    var cipherText = { CiphertextBlob: encryptedBuf };
-    var kms = new AWS.KMS();
+  } else if (config.KMS_ENCRYPTED_HOOK_URL && config.KMS_ENCRYPTED_HOOK_URL !== 'none') {
+    const encryptedBuf = new Buffer(config.KMS_ENCRYPTED_HOOK_URL, 'base64'),
+          cipherText = { CiphertextBlob: encryptedBuf },
+          kms = new AWS.KMS();
 
     kms.decrypt(cipherText, function(err, data) {
       if (err) {
-        console.log("decrypt error: " + err);
+        logger.debug("decrypt error: " + err);
         processEvent(event, context);
       } else {
         hookUrl = "https://" + data.Plaintext.toString('ascii');

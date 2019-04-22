@@ -1,6 +1,7 @@
 module.exports = {
-  kmsEncryptedHookUrl: process.env.KMS_ENCRYPTED_HOOK_URL, // encrypted slack webhook url
-  unencryptedHookUrl: process.env.UNENCRYPTED_HOOK_URL,    // unencrypted slack webhook url
+  LOG_LEVEL: process.env.LOG_LEVEL,
+  KMS_ENCRYPTED_HOOK_URL: process.env.KMS_ENCRYPTED_HOOK_URL, // encrypted slack webhook url
+  UNENCRYPTED_HOOK_URL: process.env.UNENCRYPTED_HOOK_URL,    // unencrypted slack webhook url
 
   services: {
     elasticbeanstalk: {
