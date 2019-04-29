@@ -25,6 +25,6 @@ functions:
     name: 'cloudwatch-to-slack-${self:provider.stage}'
     handler: index.handler
     environment:
-      UNENCRYPTED_HOOK_URL: ${env:HOOK_URL, "none"}
-      KMS_ENCRYPTED_HOOK_URL: ${env:KMS_HOOK_URL, "none"}
+      UNENCRYPTED_HOOK_URL: ${ssm:/devops/sla-monitor/HOOK_URL~true}
+      KMS_ENCRYPTED_HOOK_URL: ${ssm:/devops/sla-monitor/KMS_HOOK_URL~true}
       LOG_LEVEL: 'debug'

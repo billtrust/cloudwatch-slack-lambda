@@ -93,6 +93,15 @@ For encrypted hook urls, use KMS_HOOK_URL instead.
 The final step is to deploy the integration to AWS Lambda:
 
 ```bash
+export AWS_REGION=${AWS_DEFAULT_REGION:-us-east-1}
+export AWS_ENV=dev
+export HOOK_URL=https://hooks.slack.com/services/ABCDEFG/12345678
+./deploy $AWS_ENV $HOOK_URL
+```
+
+Which is the same thing as running these commands:
+
+```bash
 docker build -t lambda-cloudwatch-slack .
 
 export AWS_ENV="dev" && \

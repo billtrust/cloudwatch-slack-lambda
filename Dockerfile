@@ -4,7 +4,7 @@ WORKDIR /lambda
 
 COPY . .
 
-RUN npm install -g serverless && \
+RUN npm install -g serverless jshint && \
     npm install && \
     apt update && \
     apt install -y dos2unix && \

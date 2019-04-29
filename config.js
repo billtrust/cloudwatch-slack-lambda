@@ -8,7 +8,7 @@ module.exports = {
       // text in the sns message or topicname to match on to process this service type
       match_text: "ElasticBeanstalkNotifications"
     },
-    cloudwatch: {     
+    cloudwatch: {
     },
     codepipeline: {
       // text in the sns message or topicname to match on to process this service type
@@ -28,4 +28,4 @@ module.exports = {
     }
   }
 
-}
+};

@@ -1,3 +1,5 @@
+/*jshint esversion: 6*/
+
 const AWS = require('aws-sdk'),
       url = require('url'),
       https = require('https'),
@@ -5,7 +7,7 @@ const AWS = require('aws-sdk'),
       _ = require('lodash'),
       logger = require('./logger');
 
-const baseSlackMessage = {}
+const baseSlackMessage = {};
 
 let hookUrl;
 
@@ -205,7 +207,7 @@ const handleElasticache = function(event, context) {
   let eventname, nodename;
       color = "good";
 
-  for(key in message){
+  for (let key in message){
     eventname = key;
     nodename = message[key];
     break;
@@ -263,12 +265,12 @@ const handleCloudWatch = function(event, context) {
           { "title": "Alarm Reason", "value": alarmReason, "short": false },
           {
             "title": "Trigger",
-            "value": trigger.Statistic + " "
-              + metricName + " "
-              + trigger.ComparisonOperator + " "
-              + trigger.Threshold + " for "
-              + trigger.EvaluationPeriods + " period(s) of "
-              + trigger.Period + " seconds.",
+            "value": trigger.Statistic + " " +
+              metricName + " " +
+              trigger.ComparisonOperator + " " +
+              trigger.Threshold + " for " +
+              trigger.EvaluationPeriods + " period(s) of " +
+              trigger.Period + " seconds.",
               "short": false
           },
           { "title": "Old State", "value": oldState, "short": true },
@@ -319,7 +321,7 @@ const handleCatchAll = function(event, context) {
           timestamp = new Date(record.Sns.Timestamp).getTime() / 1000,
           message = JSON.parse(record.Sns.Message);
 
-    let color = "warning";
+    let color = "good";
 
     if (message.NewStateValue === "ALARM") {
         color = "danger";
@@ -327,15 +329,15 @@ const handleCatchAll = function(event, context) {
         color = "good";
     }
 
-    // Add all of the values from the event message to the Slack message description
-    let description = ""
-    for(key in message) {
+    // Add all of the values from the event message to the Slack message
+    let fields = [];
+    for (let key in message) {
 
-        let renderedMessage = typeof message[key] === 'object'
-                            ? JSON.stringify(message[key])
-                            : message[key]
+        isObject = typeof message[key] === 'object';
 
-        description = description + "\n" + key + ": " + renderedMessage
+        let renderedMessage = isObject ? JSON.stringify(message[key]) : message[key];
+
+        fields.push({ "title": key.charAt(0).toUpperCase() + key.slice(1), "value": renderedMessage, "short": isObject});
     }
 
     let slackMessage = {
@@ -343,17 +345,14 @@ const handleCatchAll = function(event, context) {
         attachments: [
           {
             "color": color,
-            "fields": [
-              { "title": "Message", "value": record.Sns.Subject, "short": false },
-              { "title": "Description", "value": description, "short": false }
-            ],
+            "fields": fields,
             "ts": timestamp
           }
         ]
-    }
+    };
 
   return _.merge(slackMessage, baseSlackMessage);
-}
+};
 
 const processEvent = function(event, context) {
   logger.debug("sns received:" + JSON.stringify(event, null, 2));
@@ -367,16 +366,16 @@ const processEvent = function(event, context) {
   try {
     eventSnsMessage = JSON.parse(eventSnsMessageRaw);
   }
-  catch (e) {    
+  catch (e) {
   }
 
   if(eventSubscriptionArn.indexOf(config.services.codepipeline.match_text) > -1 || eventSnsSubject.indexOf(config.services.codepipeline.match_text) > -1 || eventSnsMessageRaw.indexOf(config.services.codepipeline.match_text) > -1){
     logger.debug("processing codepipeline notification");
-    slackMessage = handleCodePipeline(event,context)
+    slackMessage = handleCodePipeline(event,context);
   }
   else if(eventSubscriptionArn.indexOf(config.services.elasticbeanstalk.match_text) > -1 || eventSnsSubject.indexOf(config.services.elasticbeanstalk.match_text) > -1 || eventSnsMessageRaw.indexOf(config.services.elasticbeanstalk.match_text) > -1){
     logger.debug("processing elasticbeanstalk notification");
-    slackMessage = handleElasticBeanstalk(event,context)
+    slackMessage = handleElasticBeanstalk(event,context);
   }
   else if(eventSnsMessage && 'AlarmName' in eventSnsMessage && 'AlarmDescription' in eventSnsMessage){
     logger.debug("processing cloudwatch notification");

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+if [[ -z "$1" ]] || [[ -z "$2" ]] ; then
+    echo 'Usage: deploy $AWS_ENV $HOOK_URL'
+else
+    docker build -t lambda-cloudwatch-slack .
+    AWS_ENV=$1
+    HOOK_URL=$2
+    AWS_REGION=${AWS_REGION:-us-east-1}
+    iam-docker-run \
+       --image lambda-cloudwatch-slack \
+       --profile $AWS_ENV \
+       -e DEPLOY_BUCKET="billtrust-deploy-$AWS_ENV-$AWS_REGION" \
+       -e HOOK_URL=$HOOK_URL \
+       --full-entrypoint "npm run deploy"
+fi

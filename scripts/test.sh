@@ -1,3 +1,5 @@
+jshint *.js
+
 sls invoke local -p test/sns-autoscaling-event.json\
     -f cloudwatch-to-slack \
     -e AWS_ENV=dev -e AWS_REGION=us-east-1 \
