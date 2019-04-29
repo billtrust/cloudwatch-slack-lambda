@@ -1,4 +1,4 @@
-service: cloudwatch-to-slack
+service: sns-slack-lambda
 
 # pin to a specific Serverless version
 frameworkVersion: ">=1.2.0 <2.0.0"
@@ -21,10 +21,10 @@ package:
         - images
 
 functions:
-  cloudwatch-to-slack:
-    name: 'cloudwatch-to-slack-${self:provider.stage}'
+  sns-slack-lambda:
+    name: 'sns-slack-lambda-${self:provider.stage}'
     handler: index.handler
     environment:
-      UNENCRYPTED_HOOK_URL: ${ssm:/devops/sla-monitor/HOOK_URL~true}
-      KMS_ENCRYPTED_HOOK_URL: ${ssm:/devops/sla-monitor/KMS_HOOK_URL~true}
+      UNENCRYPTED_HOOK_URL: ${ssm:/devops/sns-slack-lambda/HOOK_URL~true}
+      KMS_ENCRYPTED_HOOK_URL: ${ssm:/devops/sns-slack-lambda/KMS_HOOK_URL~true}
       LOG_LEVEL: 'debug'

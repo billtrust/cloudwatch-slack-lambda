@@ -1,43 +1,32 @@
-PARENT PROJECT INFORMATION:
-
-# lambda-cloudwatch-slack
+# sns-slack-lambda
 
 An [AWS Lambda](http://aws.amazon.com/lambda/) function for better Slack notifications. 
-[Check out the blog post](https://assertible.com/blog/npm-package-lambda-cloudwatch-slack).
 
 ## Overview
 
-This function was originally derived from the
-[AWS blueprint named `cloudwatch-alarm-to-slack`](https://aws.amazon.com/blogs/aws/new-slack-integration-blueprints-for-aws-lambda/).
+This was a fork of [assertible/lambda-cloudwatch-slack](https://github.com/assertible/lambda-cloudwatch-slack), however, now it not only formats cloudwatch alarms, but also will accept any json data and send to to slack as well.
 
-# For this fork:
+Other non-trivial changes were made to the upstream project, such as upgrading to Node 8.10, improved testing, using a dedicated logger, removing abandoned sections of code, adding a Docker build environment, and converting this to use Serverless instead instead of node-lambda.
 
-Non-trivial changes were made to the upstream project to support upgrading to node 8.10, testing, using a dedicated logger, removing unnecessary pieces, adding a Docker build environment, and converting this to use Serverless instead.
-
-### 1. Clone this repository
-
-### 3. Setup Slack hook
+## Setup Slack hook
 
 Follow these steps to configure the webhook in Slack:
 
-  1. Navigate to
-     [https://slack.com/services/new](https://slack.com/services/new)
-     and search for and select "Incoming WebHooks".
+  1. Navigate to [the Slack API apps page](https://api.slack.com/apps) and create a new app in your workspace.
 
-  3. Choose the default channel where messages will be sent and click
-     "Add Incoming WebHooks Integration".
+  2. Under Features, click incoming webhooks.
 
-  4. Copy the webhook URL from the setup instructions and use it in
-     the next section.
+  3. Create a new integration in the channel of your choice. For now, you will need to deploy a new lambda for each webhook. I would reccomend choosing one alert channel for each AWS environment, and having all alerts go there.
 
-  5. Click 'Save Settings' at the bottom of the Slack integration
-     page.
+  4. Click 'Authorize' at the bottom to install the app in that channel.
 
-#### Encrypted the Slack webhook URL
+  5. Copy the webhook URL from the setup instructions and use it in the next section.
 
-If you don't want or need to encrypt your hook URL, you can use the
-`UNENCRYPTED_HOOK_URL`.  If this variable is specified, the
-`KMS_ENCRYPTED_HOOK_URL` is ignored.
+## Setting the Hook URL
+
+The incoming webhook is defined via SSM during the deployment process. Unencrypted is read from `/devops/sns-slack-lambda/HOOK_URL`, and the kms hook is read from `/devops/sns-slack-lambda/KMS_HOOK_URL`. 
+
+If you don't want or need to encrypt your hook URL, you can just set `HOOK_URL`, and the `KMS_HOOK_URL` is ignored.
 
 If you **do** want to encrypt your hook URL, follow these steps to
 encrypt your Slack hook URL for use in this function:
@@ -52,7 +41,7 @@ encrypt your Slack hook URL for use in this function:
      (e.g. "hooks.slack.com/services/abc123").
 
   3. Copy the base-64 encoded, encrypted key (CiphertextBlob) to the
-     ENCRYPTED_HOOK_URL variable.
+     ENCRYPTED\_HOOK\_URL variable.
 
   4. Give your function's role permission for the kms:Decrypt action.
      Example:
@@ -75,49 +64,38 @@ encrypt your Slack hook URL for use in this function:
 }
 ```
 
+## Hook Url
+
 ## Tests
 
 With the variables filled in, you can test the function:
 
 ```bash
-   docker build -t lambda-cloudwatch-slack .
-
-   export HOOK_URL=<HOOK_URL> && \
-   docker run --rm -e HOOK_URL=$HOOK_URL lambda-cloudwatch-slack
+   docker build -t sns-slack-lambda . && \
+   docker run --rm sns-slack-lambda
 ```
-
-For encrypted hook urls, use KMS_HOOK_URL instead.
 
 ### 4. Deploy to AWS Lambda
 
 The final step is to deploy the integration to AWS Lambda:
 
 ```bash
-export AWS_REGION=${AWS_DEFAULT_REGION:-us-east-1}
-export AWS_ENV=dev
-export HOOK_URL=https://hooks.slack.com/services/ABCDEFG/12345678
-./deploy $AWS_ENV $HOOK_URL
+export AWS_REGION=us-east-1 && \
+export AWS_ENV=dev && \
+export ORG=my-company
+./deploy
 ```
 
 Which is the same thing as running these commands:
 
 ```bash
-docker build -t lambda-cloudwatch-slack .
-
-export AWS_ENV="dev" && \
-export AWS_REGION="us-east-1" && \
-export DEPLOY_BUCKET="billtrust-deploy-$AWS_ENV-$AWS_REGION" && \
-export HOOK_URL=<HOOK_URL> && \
+export AWS_ENV=dev && \
+export AWS_REGION=us-east-1 && \
+export ORG=my-company && \
+docker build -t sns-slack-lambda . && \
 iam-docker-run \
-   --image lambda-cloudwatch-slack \
+   --image sns-slack-lambda \
    --profile $AWS_ENV \
-   -e DEPLOY_BUCKET=$DEPLOY_BUCKET \
-   -e HOOK_URL=$HOOK_URL \
+   -e DEPLOY_BUCKET=$ORG-deploy-$AWS_ENV-$AWS_REGION \
    --full-entrypoint "npm run deploy"
 ```
-
-For encrypted hook urls, use KMS_HOOK_URL instead.
-
-## License
-
-MIT License
