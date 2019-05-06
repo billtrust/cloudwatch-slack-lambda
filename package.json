@@ -1,11 +1,9 @@
 {
-  "name": "lambda-cloudwatch-slack",
+  "name": "sns-slack-lambda",
   "version": "0.3.0",
-  "description": "Better Slack notifications for AWS CloudWatch",
+  "description": "Better Slack notifications via SNS",
   "authors": [
-    "Christopher Reichert <creichert07@gmail.com>",
-    "Cody Reichert <codyreichert@gmail.com>",
-    "Alexandr Promakh <s-promakh@ya.ru>"
+      "Jaime Wissner <jaime.wissner@gmail.com>"
   ],
   "config": {
     "progress": "true"
@@ -23,6 +21,7 @@
   },
   "keywords": [
     "aws",
+    "sns",
     "slack",
     "lambda",
     "slackbot",
@@ -32,7 +31,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/billtrust/lambda-cloudwatch-slack.git"
+    "url": "https://github.com/billtrust/sns-slack-lambda.git"
   },
   "scripts": {
     "deploy": "./scripts/deploy.sh",
