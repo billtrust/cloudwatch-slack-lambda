@@ -91,11 +91,11 @@ Which is the same thing as running these commands:
 ```bash
 export AWS_ENV=dev && \
 export AWS_REGION=us-east-1 && \
-export ORG=my-company && \
+export DEPLOY_BUCKET=deploy-bucket-$AWS_ENV-$AWS_REGION && \
 docker build -t sns-slack-lambda . && \
 iam-docker-run \
    --image sns-slack-lambda \
    --profile $AWS_ENV \
-   -e DEPLOY_BUCKET=$ORG-deploy-$AWS_ENV-$AWS_REGION \
+   -e DEPLOY_BUCKET=$DEPLOY_BUCKET \
    --full-entrypoint "npm run deploy"
 ```

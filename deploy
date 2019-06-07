@@ -1,12 +1,12 @@
 #!/bin/bash
 
-if [[ -z "$AWS_REGION" ]] || [[ -z "$AWS_ENV" ]] ; then
-    echo 'Requires $AWS_ENV and $AWS_REGION. Please set those and rerun.'
+if [[ -z "$AWS_REGION" ]] || [[ -z "$AWS_ENV" ]] || [[ -z "$DEPLOY_BUCKET" ]] ; then
+    echo 'Requires $DEPLOY_BUCKET, $AWS_ENV, and $AWS_REGION. Please set those and rerun.'
 else
-    docker build -t lambda-cloudwatch-slack .
+    docker build -t sns-slack-lambda .
     iam-docker-run \
-       --image lambda-cloudwatch-slack \
+       --image sns-slack-lambda \
        --profile $AWS_ENV \
-       -e DEPLOY_BUCKET=${COMPANY:-company}-deploy-$AWS_ENV-$AWS_REGION \
+       -e DEPLOY_BUCKET=${DEPLOY_BUCKET} \
        --full-entrypoint "npm run deploy"
 fi
